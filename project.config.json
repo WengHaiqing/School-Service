@@ -40,10 +40,12 @@
   },
   "compileType": "miniprogram",
   "libVersion": "trial",
-  "appid": "wxc89469605594f323",
+  "appid": "wxfc807696d2c571f9",
   "projectname": "campus-dragonfly",
   "miniprogramRoot": "miniprogram/",
+  "cloudfunctionRoot": "cloudfunctions/",
   "condition": {},
   "simulatorPluginLibVersion": {},
-  "editorSetting": {}
+  "editorSetting": {},
+  "isGameTourist": false
 }

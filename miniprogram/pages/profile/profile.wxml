@@ -73,8 +73,9 @@
   </view>
 
   <view class="demo card">
-    <text class="demo__title">开发态工具</text>
-    <text class="demo__desc">当前项目使用本地模拟数据。真实短信、支付、学生认证和客服系统尚未接入。</text>
-    <button class="btn btn--danger demo__button" bindtap="resetDemo">重置演示数据</button>
+    <text class="demo__title">{{cloudMode ? '云端联机开发模式' : '本地演示模式'}}</text>
+    <text class="demo__desc" wx:if="{{cloudMode}}">任务、订单和消息已通过云函数同步。环境：{{cloudEnvironment}}。短信、支付、学生认证和客服处理仍为开发态模拟。</text>
+    <text class="demo__desc" wx:else>当前项目使用本地模拟数据，所有数据仅保存在本机缓存。</text>
+    <button class="btn btn--danger demo__button" bindtap="resetDemo">{{cloudMode ? '查看数据清理说明' : '重置演示数据'}}</button>
   </view>
 </view>

@@ -1,4 +1,4 @@
-const store = require('../../services/store')
+const dataService = require('../../services/data-service')
 
 Page({
   data: {
@@ -29,9 +29,13 @@ Page({
     submitting: false
   },
 
-  onShow() {
-    const session = store.session()
-    this.setData({ authenticated: session.authenticated, user: session.user })
+  async onShow() {
+    try {
+      const session = await dataService.session()
+      this.setData({ authenticated: session.authenticated, user: session.user })
+    } catch (error) {
+      wx.showToast({ title: error.message, icon: 'none' })
+    }
   },
 
   onInput(event) {
@@ -62,7 +66,7 @@ Page({
     wx.navigateTo({ url: '/pages/rules/rules' })
   },
 
-  submit() {
+  async submit() {
     if (!this.data.authenticated) return this.goLogin()
     const { title, description, delivery, location, amount, note, agreed } = this.data
     if (title.trim().length < 4) return this.toast('标题至少4个字')
@@ -82,7 +86,7 @@ Page({
 
     this.setData({ submitting: true })
     try {
-      const task = store.createTask({
+      const task = await dataService.createTask({
         title,
         description,
         delivery,

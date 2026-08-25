@@ -1,4 +1,4 @@
-const store = require('../../services/store')
+const dataService = require('../../services/data-service')
 const { relativeDeadline } = require('../../utils/format')
 
 Page({
@@ -19,19 +19,25 @@ Page({
     this.load()
   },
 
-  onPullDownRefresh() {
-    this.load()
+  async onPullDownRefresh() {
+    await this.load()
     wx.stopPullDownRefresh()
   },
 
-  load() {
-    store.sweep()
-    const session = store.session()
-    const tasks = store.listTasks().slice(0, 4).map(task => ({
-      ...task,
-      deadlineText: relativeDeadline(task.expiresAt)
-    }))
-    this.setData({ authenticated: session.authenticated, user: session.user, tasks })
+  async load() {
+    try {
+      const [session, rawTasks] = await Promise.all([
+        dataService.session(),
+        dataService.listTasks()
+      ])
+      const tasks = rawTasks.slice(0, 4).map(task => ({
+        ...task,
+        deadlineText: relativeDeadline(task.expiresAt)
+      }))
+      this.setData({ authenticated: session.authenticated, user: session.user, tasks })
+    } catch (error) {
+      wx.showToast({ title: error.message, icon: 'none' })
+    }
   },
 
   onKeywordInput(event) {

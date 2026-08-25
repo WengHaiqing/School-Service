@@ -1,4 +1,4 @@
-const store = require('../../services/store')
+const dataService = require('../../services/data-service')
 
 Page({
   data: {
@@ -49,7 +49,7 @@ Page({
     wx.navigateTo({ url: '/pages/rules/rules' })
   },
 
-  submit() {
+  async submit() {
     const { wxReady, phone, code, school, campus, studentNo, agreed } = this.data
     if (!wxReady) return this.toast('请先完成微信登录')
     if (!/^1\d{10}$/.test(phone)) return this.toast('请填写正确手机号')
@@ -59,9 +59,15 @@ Page({
     if (!agreed) return this.toast('请阅读并同意平台规则')
 
     this.setData({ submitting: true })
-    store.completeOnboarding({ phone, school, campus, studentNo })
-    wx.showToast({ title: '认证完成', icon: 'success' })
-    setTimeout(() => wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/index/index' }) }), 600)
+    try {
+      await dataService.completeOnboarding({ phone, school, campus, studentNo })
+      wx.showToast({ title: '认证完成', icon: 'success' })
+      setTimeout(() => wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/index/index' }) }), 600)
+    } catch (error) {
+      this.toast(error.message)
+    } finally {
+      this.setData({ submitting: false })
+    }
   },
 
   toast(title) {

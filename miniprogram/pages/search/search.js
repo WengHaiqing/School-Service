@@ -1,4 +1,4 @@
-const store = require('../../services/store')
+const dataService = require('../../services/data-service')
 const { relativeDeadline } = require('../../utils/format')
 
 Page({
@@ -18,17 +18,21 @@ Page({
     this.load()
   },
 
-  onPullDownRefresh() {
-    this.load()
+  async onPullDownRefresh() {
+    await this.load()
     wx.stopPullDownRefresh()
   },
 
-  load() {
-    const tasks = store.listTasks({
-      keyword: this.data.keyword,
-      category: this.data.activeCategory
-    }).map(task => ({ ...task, deadlineText: relativeDeadline(task.expiresAt) }))
-    this.setData({ tasks })
+  async load() {
+    try {
+      const rawTasks = await dataService.listTasks({
+        keyword: this.data.keyword,
+        category: this.data.activeCategory
+      })
+      this.setData({ tasks: rawTasks.map(task => ({ ...task, deadlineText: relativeDeadline(task.expiresAt) })) })
+    } catch (error) {
+      wx.showToast({ title: error.message, icon: 'none' })
+    }
   },
 
   onKeywordInput(event) {
@@ -53,12 +57,16 @@ Page({
     wx.navigateTo({ url: `/pages/task-detail/task-detail?id=${event.currentTarget.dataset.id}` })
   },
 
-  goPublish() {
-    const session = store.session()
-    if (!session.authenticated) {
-      wx.navigateTo({ url: '/pages/login/login' })
-      return
+  async goPublish() {
+    try {
+      const session = await dataService.session()
+      if (!session.authenticated) {
+        wx.navigateTo({ url: '/pages/login/login' })
+        return
+      }
+      wx.switchTab({ url: '/pages/publish/publish' })
+    } catch (error) {
+      wx.showToast({ title: error.message, icon: 'none' })
     }
-    wx.switchTab({ url: '/pages/publish/publish' })
   }
 })
