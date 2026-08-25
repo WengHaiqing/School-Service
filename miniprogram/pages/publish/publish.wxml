@@ -1,0 +1,103 @@
+<view class="page publish-page">
+  <view class="publish-head">
+    <text class="publish-head__eyebrow">POST A CAMPUS TASK</text>
+    <text class="publish-head__title">把交付标准写清楚，接单更快</text>
+    <text class="publish-head__desc">第一版只接受固定金额的一次性校园任务，不支持面议、企业招聘、学术代办和危险服务。</text>
+  </view>
+
+  <view wx:if="{{!authenticated}}" class="login-gate card">
+    <view class="login-gate__icon">🔒</view>
+    <text class="login-gate__title">发布前需要校园认证</text>
+    <text class="login-gate__desc">完成微信、手机号和校园身份三步认证后，可以发布和管理本校任务。</text>
+    <button class="btn btn--primary login-gate__button" bindtap="goLogin">去完成认证</button>
+  </view>
+
+  <block wx:else>
+    <view class="identity card">
+      <view class="identity__avatar">{{user.avatarText}}</view>
+      <view class="identity__copy">
+        <text class="identity__name">{{user.nickname}}</text>
+        <text class="identity__school">{{user.school}} · {{user.campus}}</text>
+      </view>
+      <text class="pill">✓ 已认证</text>
+    </view>
+
+    <view class="form-card card">
+      <view class="field">
+        <text class="field__label">任务分类<text class="field__required">*</text></text>
+        <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+          <view class="picker-box">{{categories[categoryIndex]}} <text class="picker-arrow">⌄</text></view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <text class="field__label">任务标题<text class="field__required">*</text></text>
+        <input class="input" maxlength="20" value="{{title}}" data-field="title" bindinput="onInput" placeholder="一句话说明需要什么帮助" />
+        <text class="field__hint">{{title.length}} / 20</text>
+      </view>
+
+      <view class="field">
+        <text class="field__label">任务说明<text class="field__required">*</text></text>
+        <textarea class="textarea" maxlength="300" value="{{description}}" data-field="description" bindinput="onInput" placeholder="说明任务内容、数量、时间和必要条件，不要填写联系方式" />
+        <text class="field__hint">{{description.length}} / 300</text>
+      </view>
+
+      <view class="field">
+        <text class="field__label">交付标准<text class="field__required">*</text></text>
+        <input class="input" maxlength="80" value="{{delivery}}" data-field="delivery" bindinput="onInput" placeholder="怎样才算完成？如：送到指定地点并确认" />
+      </view>
+
+      <view class="field">
+        <text class="field__label">服务地点<text class="field__required">*</text></text>
+        <input class="input" maxlength="60" value="{{location}}" data-field="location" bindinput="onInput" placeholder="先写公共区域，接单后再确认详细位置" />
+      </view>
+
+      <view class="field two-column">
+        <view class="two-column__item">
+          <text class="field__label">固定金额<text class="field__required">*</text></text>
+          <view class="money-input">
+            <text>¥</text>
+            <input type="digit" maxlength="7" value="{{amount}}" data-field="amount" bindinput="onInput" placeholder="0.00" />
+          </view>
+        </view>
+        <view class="two-column__item">
+          <text class="field__label">接单有效期<text class="field__required">*</text></text>
+          <picker mode="selector" range="{{expiryOptions}}" range-key="label" value="{{expiryIndex}}" bindchange="onExpiryChange">
+            <view class="picker-box picker-box--small">{{expiryOptions[expiryIndex].label}}</view>
+          </picker>
+        </view>
+      </view>
+
+      <view class="field">
+        <text class="field__label">履约期限<text class="field__required">*</text></text>
+        <picker mode="selector" range="{{serviceOptions}}" range-key="label" value="{{serviceIndex}}" bindchange="onServiceChange">
+          <view class="picker-box">{{serviceOptions[serviceIndex].label}} <text class="picker-arrow">⌄</text></view>
+        </picker>
+        <text class="field__hint">接单成功后按这个时间计算，不受任务大厅下架时间影响。</text>
+      </view>
+
+      <view class="field">
+        <text class="field__label">备注（选填，50字以内）</text>
+        <input class="input" maxlength="50" value="{{note}}" data-field="note" bindinput="onInput" placeholder="补充不适合放在上面字段的信息" />
+        <text class="field__hint">{{note.length}} / 50</text>
+      </view>
+    </view>
+
+    <view class="risk-card card">
+      <text class="risk-card__icon">🛡</text>
+      <view>
+        <text class="risk-card__title">绿色社区发布承诺</text>
+        <text class="risk-card__desc">我确认任务合法、信息真实，不涉及学术代办、刷单跑分、危险服务或要求接单者预先付费。</text>
+      </view>
+    </view>
+
+    <view class="agreement" bindtap="toggleAgreement">
+      <view class="checkbox {{agreed ? 'checkbox--checked' : ''}}">{{agreed ? '✓' : ''}}</view>
+      <text>我已阅读并遵守</text>
+      <text class="agreement__link" catchtap="openRules">《任务发布规则》</text>
+    </view>
+
+    <button class="btn btn--primary submit" disabled="{{submitting}}" bindtap="submit">模拟确认金额并发布</button>
+    <text class="payment-note">MVP 暂未接入真实微信支付；当前只记录“开发态金额已确认”。</text>
+  </block>
+</view>

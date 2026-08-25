@@ -1,0 +1,37 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/search/search",
+    "pages/publish/publish",
+    "pages/orders/orders",
+    "pages/profile/profile",
+    "pages/login/login",
+    "pages/task-detail/task-detail",
+    "pages/order-detail/order-detail",
+    "pages/ranking/ranking",
+    "pages/rules/rules"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#F6F8F4",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "校园青蜓",
+    "backgroundColor": "#F6F8F4",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "color": "#7A817C",
+    "selectedColor": "#087F73",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/search/search", "text": "找任务" },
+      { "pagePath": "pages/publish/publish", "text": "发布" },
+      { "pagePath": "pages/orders/orders", "text": "订单" },
+      { "pagePath": "pages/profile/profile", "text": "我的" }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}

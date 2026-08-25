@@ -1,0 +1,98 @@
+<view class="page detail-page" wx:if="{{task}}">
+  <view class="detail-head card">
+    <view class="detail-head__top">
+      <text class="pill">{{task.category}}</text>
+      <text class="money">¥{{task.amount}}</text>
+    </view>
+    <text class="detail-head__title">{{task.title}}</text>
+    <view class="detail-head__status">
+      <text class="pill pill--warm">{{task.deadlineText}}</text>
+      <text class="verified">✓ 发布者已通过校园认证</text>
+    </view>
+  </view>
+
+  <view class="publisher-card card">
+    <view class="publisher-card__avatar">{{task.publisher.avatarText}}</view>
+    <view class="publisher-card__copy">
+      <text class="publisher-card__name">{{task.publisher.nickname}}</text>
+      <text class="publisher-card__school">{{task.school}} · {{task.campus}}</text>
+    </view>
+    <view class="publisher-card__score">
+      <text class="publisher-card__stars">★ {{task.publisher.stars}}</text>
+      <text class="publisher-card__orders">完成 {{task.publisher.completed}} 单</text>
+    </view>
+  </view>
+
+  <view class="content-card card">
+    <view class="content-section">
+      <text class="content-section__label">任务说明</text>
+      <text class="content-section__text">{{task.description}}</text>
+    </view>
+    <view class="divider"></view>
+    <view class="content-section">
+      <text class="content-section__label">交付标准</text>
+      <text class="content-section__text">{{task.delivery}}</text>
+    </view>
+    <view class="divider"></view>
+    <view class="content-section">
+      <text class="content-section__label">服务地点</text>
+      <text class="content-section__text">📍 {{task.location}}</text>
+    </view>
+    <view wx:if="{{task.note}}" class="divider"></view>
+    <view wx:if="{{task.note}}" class="content-section">
+      <text class="content-section__label">备注</text>
+      <text class="content-section__text">{{task.note}}</text>
+    </view>
+  </view>
+
+  <view class="time-card card">
+    <view class="time-row">
+      <text class="time-row__label">接单截止</text>
+      <text class="time-row__value">{{task.expiresText}}</text>
+    </view>
+    <view class="time-row">
+      <text class="time-row__label">预计履约截止</text>
+      <text class="time-row__value">{{task.serviceText}}</text>
+    </view>
+    <view class="time-row">
+      <text class="time-row__label">发布时间</text>
+      <text class="time-row__value muted">{{task.createdText}}</text>
+    </view>
+  </view>
+
+  <view class="safety card">
+    <text class="safety__icon">🛡</text>
+    <view>
+      <text class="safety__title">请在订单内沟通和提交凭证</text>
+      <text class="safety__desc">不要发送手机号、微信号或二维码。线下转账可能无法获得平台订单证据支持。</text>
+      <text class="safety__link" bindtap="openRules">查看平台规则 →</text>
+    </view>
+  </view>
+
+  <view wx:if="{{task.isMine}}" class="owner-actions card">
+    <text class="owner-actions__title">这是你发布的任务</text>
+    <text class="owner-actions__desc">无人接单时最多可以延长两次，目前已延长 {{task.extensionCount}} 次。</text>
+    <view class="owner-actions__buttons">
+      <button class="btn btn--secondary" data-days="1" bindtap="extend">延长1天</button>
+      <button class="btn btn--outline" data-days="7" bindtap="extend">延长1周</button>
+    </view>
+  </view>
+
+  <view class="sticky-action">
+    <view>
+      <text class="sticky-action__label">固定报酬</text>
+      <text class="money">¥{{task.amount}}</text>
+    </view>
+    <button wx:if="{{!task.isMine}}" class="btn btn--primary sticky-action__button" disabled="{{accepting}}" bindtap="accept">立即接单</button>
+    <button wx:else class="btn btn--secondary sticky-action__button" bindtap="goSearch">继续浏览</button>
+  </view>
+</view>
+
+<view wx:else class="page">
+  <view class="empty card">
+    <view class="empty__icon">🍃</view>
+    <text class="empty__title">任务已下架或被接取</text>
+    <text class="empty__desc">公开任务到期或接单后会自动从任务大厅移除。</text>
+    <button class="btn btn--secondary not-found-button" bindtap="goSearch">返回任务大厅</button>
+  </view>
+</view>

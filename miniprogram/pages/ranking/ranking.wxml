@@ -1,0 +1,55 @@
+<view class="page ranking-page">
+  <view class="ranking-hero">
+    <text class="ranking-hero__eyebrow">CAMPUS CREDIT</text>
+    <text class="ranking-hero__title">本校青蜓榜</text>
+    <text class="ranking-hero__desc">星级由真实完成、守时率、取消和经核实的投诉共同决定。仅发起争议不会直接扣分。</text>
+  </view>
+
+  <view class="podium" wx:if="{{users.length >= 3}}">
+    <view class="podium__item podium__item--second">
+      <view class="podium__avatar">{{users[1].avatarText}}</view>
+      <text class="podium__medal">🥈</text>
+      <text class="podium__name">{{users[1].nickname}}</text>
+      <text class="podium__score">{{users[1].stars}} 星</text>
+    </view>
+    <view class="podium__item podium__item--first">
+      <view class="podium__crown">♛</view>
+      <view class="podium__avatar">{{users[0].avatarText}}</view>
+      <text class="podium__medal">🥇</text>
+      <text class="podium__name">{{users[0].nickname}}</text>
+      <text class="podium__score">{{users[0].stars}} 星</text>
+    </view>
+    <view class="podium__item podium__item--third">
+      <view class="podium__avatar">{{users[2].avatarText}}</view>
+      <text class="podium__medal">🥉</text>
+      <text class="podium__name">{{users[2].nickname}}</text>
+      <text class="podium__score">{{users[2].stars}} 星</text>
+    </view>
+  </view>
+
+  <view class="rank-list card">
+    <view class="rank-row {{item.isMe ? 'rank-row--mine' : ''}}" wx:for="{{users}}" wx:key="id">
+      <text class="rank-row__number">{{item.rank}}</text>
+      <view class="rank-row__avatar">{{item.avatarText}}</view>
+      <view class="rank-row__copy">
+        <view class="rank-row__name-line">
+          <text class="rank-row__name">{{item.nickname}}</text>
+          <text wx:if="{{item.isMe}}" class="pill">我</text>
+        </view>
+        <text class="rank-row__meta">完成 {{item.completed}} 单 · 守时 {{item.onTimeRate}}%</text>
+      </view>
+      <view class="rank-row__score">
+        <text>★ {{item.stars}}</text>
+        <text class="rank-row__verified">校园认证</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="reward-note card">
+    <text class="reward-note__icon">✦</text>
+    <view>
+      <text class="reward-note__title">现金月榜暂未开放</text>
+      <text class="reward-note__desc">正式开放奖励前，需要先建立防刷单、关联账号识别、退款订单剔除和申诉机制，避免虚假交易挤占真实用户权益。</text>
+    </view>
+  </view>
+</view>

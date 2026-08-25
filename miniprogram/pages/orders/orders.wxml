@@ -1,0 +1,49 @@
+<view class="page orders-page">
+  <view class="orders-head">
+    <text class="orders-head__eyebrow">TASK ORDERS</text>
+    <text class="orders-head__title">双方都在订单里完成确认</text>
+    <text class="orders-head__desc">接单者提交完成，发布者在24小时内验收或提出异议；逾期不操作将自动验收。</text>
+  </view>
+
+  <view wx:if="{{!authenticated}}" class="empty card">
+    <view class="empty__icon">🔒</view>
+    <text class="empty__title">认证后查看订单</text>
+    <text class="empty__desc">发布、接单和订单沟通都需要校园身份认证。</text>
+    <button class="btn btn--primary empty-button" bindtap="goLogin">去认证</button>
+  </view>
+
+  <block wx:else>
+    <view class="tabs">
+      <view wx:for="{{tabs}}" wx:key="key" class="tab {{activeTab === item.key ? 'tab--active' : ''}}" data-key="{{item.key}}" bindtap="chooseTab">{{item.label}}</view>
+    </view>
+
+    <view wx:if="{{orders.length}}" class="order-list">
+      <view class="order-card card" wx:for="{{orders}}" wx:key="id" data-id="{{item.id}}" bindtap="openOrder">
+        <view class="order-card__head">
+          <text class="pill {{item.status === 'disputed' || item.status === 'grace' ? 'pill--danger' : item.status === 'completed' || item.status === 'canceled' ? 'pill--neutral' : 'pill--warm'}}">{{item.statusText}}</text>
+          <text class="order-card__role">{{item.roleText}}</text>
+        </view>
+        <text class="order-card__title">{{item.title}}</text>
+        <view class="order-card__peer">
+          <view class="peer-avatar">{{item.otherUser.avatarText}}</view>
+          <text>交易对象：{{item.otherUser.nickname}}</text>
+          <text class="peer-star">★ {{item.otherUser.stars}}</text>
+        </view>
+        <view class="order-card__foot">
+          <view>
+            <text class="order-card__label">履约截止</text>
+            <text class="order-card__due">{{item.dueText}}</text>
+          </view>
+          <text class="money">¥{{item.amount}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="empty card">
+      <view class="empty__icon">🍃</view>
+      <text class="empty__title">这个分类还没有订单</text>
+      <text class="empty__desc">去任务大厅看看本校同学发布的新需求。</text>
+      <button class="btn btn--secondary empty-button" bindtap="goSearch">去找任务</button>
+    </view>
+  </block>
+</view>

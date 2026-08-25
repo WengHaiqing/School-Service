@@ -1,0 +1,172 @@
+.search-page {
+  padding-top: 18rpx;
+}
+
+.search-head {
+  display: flex;
+  gap: 14rpx;
+}
+
+.search-input-wrap {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  height: 86rpx;
+  padding: 0 22rpx;
+  background: #fff;
+  border-radius: 22rpx;
+}
+
+.search-icon {
+  color: var(--brand);
+  font-size: 36rpx;
+}
+
+.search-input {
+  flex: 1;
+  height: 100%;
+  margin-left: 12rpx;
+}
+
+.clear {
+  padding: 10rpx;
+  color: #9aa39e;
+  font-size: 34rpx;
+}
+
+.search-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 116rpx;
+  height: 86rpx;
+  margin: 0;
+  padding: 0;
+  color: #fff;
+  background: var(--brand);
+  border-radius: 22rpx;
+  font-weight: 700;
+}
+
+.category-scroll {
+  width: 100%;
+  margin: 24rpx 0;
+  white-space: nowrap;
+}
+
+.category-row {
+  display: flex;
+  gap: 14rpx;
+  padding-right: 20rpx;
+}
+
+.category-chip {
+  flex: none;
+  padding: 15rpx 25rpx;
+  color: #65706a;
+  background: #e9eeeb;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+}
+
+.category-chip--active {
+  color: #fff;
+  background: var(--brand);
+  font-weight: 700;
+}
+
+.result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 22rpx 4rpx 18rpx;
+}
+
+.result-count {
+  font-size: 30rpx;
+  font-weight: 750;
+}
+
+.result-sort {
+  color: var(--muted);
+  font-size: 22rpx;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.result-card {
+  padding: 28rpx;
+}
+
+.result-card__head,
+.result-card__foot,
+.result-card__badges,
+.publisher {
+  display: flex;
+  align-items: center;
+}
+
+.result-card__head,
+.result-card__foot {
+  justify-content: space-between;
+}
+
+.result-card__badges {
+  gap: 10rpx;
+}
+
+.result-card__title {
+  display: block;
+  margin: 19rpx 0 12rpx;
+  font-size: 31rpx;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.result-card__location {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 23rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result-card__foot {
+  margin-top: 22rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid var(--line);
+  font-size: 22rpx;
+}
+
+.publisher {
+  color: #4a5550;
+}
+
+.publisher__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38rpx;
+  height: 38rpx;
+  margin-right: 10rpx;
+  color: #fff;
+  background: var(--brand);
+  border-radius: 50%;
+  font-size: 19rpx;
+  font-weight: 700;
+}
+
+.deadline {
+  color: var(--warning);
+}
+
+.empty-button {
+  width: 260rpx;
+  min-height: 76rpx;
+  margin-top: 28rpx;
+}

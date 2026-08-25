@@ -1,0 +1,225 @@
+.publish-page {
+  padding-top: 10rpx;
+}
+
+.publish-head {
+  padding: 22rpx 4rpx 30rpx;
+}
+
+.publish-head__eyebrow,
+.publish-head__title,
+.publish-head__desc {
+  display: block;
+}
+
+.publish-head__eyebrow {
+  color: var(--brand);
+  font-size: 20rpx;
+  font-weight: 800;
+  letter-spacing: 3rpx;
+}
+
+.publish-head__title {
+  margin-top: 10rpx;
+  font-size: 38rpx;
+  font-weight: 800;
+}
+
+.publish-head__desc {
+  margin-top: 12rpx;
+  color: var(--muted);
+  font-size: 24rpx;
+  line-height: 1.65;
+}
+
+.login-gate {
+  padding: 62rpx 34rpx;
+  text-align: center;
+}
+
+.login-gate__icon {
+  font-size: 62rpx;
+}
+
+.login-gate__title,
+.login-gate__desc {
+  display: block;
+}
+
+.login-gate__title {
+  margin-top: 20rpx;
+  font-size: 32rpx;
+  font-weight: 750;
+}
+
+.login-gate__desc {
+  margin-top: 12rpx;
+  color: var(--muted);
+  font-size: 24rpx;
+  line-height: 1.65;
+}
+
+.login-gate__button {
+  margin-top: 28rpx;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding: 22rpx 24rpx;
+}
+
+.identity__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70rpx;
+  height: 70rpx;
+  color: #fff;
+  background: var(--brand);
+  border-radius: 22rpx;
+  font-weight: 800;
+}
+
+.identity__copy {
+  flex: 1;
+  margin-left: 16rpx;
+}
+
+.identity__name,
+.identity__school {
+  display: block;
+}
+
+.identity__name {
+  font-size: 28rpx;
+  font-weight: 750;
+}
+
+.identity__school {
+  margin-top: 5rpx;
+  color: var(--muted);
+  font-size: 22rpx;
+}
+
+.form-card {
+  padding: 30rpx;
+}
+
+.picker-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.picker-arrow {
+  color: var(--muted);
+}
+
+.two-column {
+  display: flex;
+  gap: 18rpx;
+}
+
+.two-column__item {
+  flex: 1;
+  min-width: 0;
+}
+
+.money-input {
+  display: flex;
+  align-items: center;
+  min-height: 88rpx;
+  padding: 0 22rpx;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-radius: 20rpx;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.money-input input {
+  flex: 1;
+  height: 88rpx;
+  margin-left: 10rpx;
+  color: var(--danger);
+}
+
+.picker-box--small {
+  overflow: hidden;
+  font-size: 23rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.risk-card {
+  display: flex;
+  gap: 18rpx;
+  margin-top: 20rpx;
+  padding: 24rpx;
+  background: var(--success-soft);
+}
+
+.risk-card__icon {
+  font-size: 38rpx;
+}
+
+.risk-card__title,
+.risk-card__desc {
+  display: block;
+}
+
+.risk-card__title {
+  color: var(--brand-dark);
+  font-weight: 750;
+}
+
+.risk-card__desc {
+  margin-top: 7rpx;
+  color: #547068;
+  font-size: 22rpx;
+  line-height: 1.6;
+}
+
+.agreement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28rpx 0;
+  color: var(--muted);
+  font-size: 23rpx;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34rpx;
+  height: 34rpx;
+  margin-right: 12rpx;
+  border: 2rpx solid #b8c0bc;
+  border-radius: 10rpx;
+}
+
+.checkbox--checked {
+  color: #fff;
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.agreement__link {
+  color: var(--brand);
+}
+
+.submit {
+  width: 100%;
+}
+
+.payment-note {
+  display: block;
+  margin-top: 15rpx;
+  color: var(--muted);
+  font-size: 21rpx;
+  text-align: center;
+}

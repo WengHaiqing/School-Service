@@ -1,0 +1,111 @@
+<view class="page order-detail" wx:if="{{order}}">
+  <view class="status-hero status-hero--{{order.status}}">
+    <text class="status-hero__eyebrow">{{order.roleText}}视角</text>
+    <text class="status-hero__title">{{order.statusText}}</text>
+    <text wx:if="{{order.status === 'active'}}" class="status-hero__desc">接单者需要在履约期限前提交完成说明。</text>
+    <text wx:elif="{{order.status === 'grace'}}" class="status-hero__desc">订单已自动顺延24小时，仍未提交将取消并模拟退款。</text>
+    <text wx:elif="{{order.status === 'submitted'}}" class="status-hero__desc">发布者应在 {{order.autoConfirmText}} 前验收或提出异议。</text>
+    <text wx:elif="{{order.status === 'disputed'}}" class="status-hero__desc">模拟款项已冻结，等待平台客服核实证据。</text>
+    <text wx:elif="{{order.status === 'completed'}}" class="status-hero__desc">双方流程已闭环，用户端将在 {{order.hiddenText}} 后隐藏订单。</text>
+    <text wx:else class="status-hero__desc">订单已经关闭，必要记录仍按规则安全保存。</text>
+  </view>
+
+  <view class="summary card">
+    <view class="summary__top">
+      <text class="summary__title">{{order.title}}</text>
+      <text class="money">¥{{order.amount}}</text>
+    </view>
+    <view class="summary__peer">
+      <view class="summary__avatar">{{order.peer.avatarText}}</view>
+      <view class="summary__copy">
+        <text class="summary__name">{{order.peer.nickname}}</text>
+        <text class="summary__meta">{{order.peer.school}} · {{order.peer.stars}}星 · 已认证</text>
+      </view>
+    </view>
+    <view class="summary__time">
+      <text>履约截止</text>
+      <text>{{order.dueText}}</text>
+    </view>
+    <view class="summary__time">
+      <text>金额状态</text>
+      <text>{{order.paymentStatus === 'simulated_held' ? '开发态模拟托管' : order.paymentStatus === 'simulated_settled' ? '开发态模拟结算' : order.paymentStatus === 'simulated_frozen' ? '争议冻结' : '开发态模拟退款'}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{(order.role === 'runner') && (order.status === 'active' || order.status === 'grace')}}" class="action-card card">
+    <text class="action-card__eyebrow">接单者操作</text>
+    <text class="action-card__title">提交完成说明</text>
+    <text class="action-card__desc">说明实际完成时间、交付方式和凭证。提交后发布者有24小时验收。</text>
+    <textarea class="textarea" maxlength="300" value="{{evidence}}" data-field="evidence" bindinput="onInput" placeholder="例如：已送到指定值班室，并由值班老师签收。" />
+    <button class="btn btn--primary action-card__button" bindtap="submitComplete">我已完成，提交验收</button>
+  </view>
+
+  <view wx:if="{{order.status === 'submitted'}}" class="evidence-card card">
+    <text class="evidence-card__label">接单者完成说明</text>
+    <text class="evidence-card__text">{{order.evidence}}</text>
+    <text class="evidence-card__time">提交时间：{{order.submittedText}}</text>
+  </view>
+
+  <view wx:if="{{order.role === 'publisher' && order.status === 'submitted'}}" class="action-card card">
+    <text class="action-card__eyebrow">发布者操作</text>
+    <text class="action-card__title">核对任务交付结果</text>
+    <text class="action-card__desc">确认后模拟款项结算给接单者；有明确问题请在自动验收前提交争议。</text>
+    <button class="btn btn--primary action-card__button" bindtap="confirmComplete">确认任务已完成</button>
+    <button class="btn btn--danger action-card__button action-card__button--minor" bindtap="toggleDispute">交付有问题</button>
+  </view>
+
+  <view wx:if="{{showDispute}}" class="dispute-card card">
+    <text class="dispute-card__title">提交争议说明</text>
+    <textarea class="textarea" maxlength="300" value="{{disputeReason}}" data-field="disputeReason" bindinput="onInput" placeholder="请客观说明未完成、交付不符或安全问题，并在聊天中保留证据。" />
+    <view class="dispute-card__actions">
+      <button class="btn btn--outline" bindtap="toggleDispute">取消</button>
+      <button class="btn btn--danger" bindtap="submitDispute">提交客服</button>
+    </view>
+  </view>
+
+  <view wx:if="{{order.status !== 'completed' && order.status !== 'canceled' && order.status !== 'disputed' && !(order.role === 'publisher' && order.status === 'submitted')}}" class="minor-action">
+    <text bindtap="toggleDispute">遇到虚假信息或交易问题？发起争议</text>
+  </view>
+
+  <view class="chat card">
+    <view class="chat__head">
+      <view>
+        <text class="chat__title">订单沟通</text>
+        <text class="chat__desc">消息与订单绑定，请勿发送联系方式或线下转账</text>
+      </view>
+      <text class="chat__rules" bindtap="openRules">规则</text>
+    </view>
+    <view wx:if="{{order.messages.length}}" class="messages">
+      <view wx:for="{{order.messages}}" wx:key="id" class="message {{item.isMe ? 'message--mine' : ''}}">
+        <text class="message__content">{{item.content}}</text>
+        <text class="message__time">{{item.timeText}}</text>
+      </view>
+    </view>
+    <view wx:else class="chat__empty">还没有消息，把任务细节留在订单里吧。</view>
+    <view wx:if="{{order.status !== 'completed' && order.status !== 'canceled'}}" class="composer">
+      <input class="composer__input" maxlength="200" value="{{message}}" data-field="message" bindinput="onInput" bindconfirm="sendMessage" placeholder="输入订单消息" />
+      <button class="composer__send" bindtap="sendMessage">发送</button>
+    </view>
+  </view>
+
+  <view class="timeline card">
+    <text class="timeline__title">订单进度</text>
+    <view class="timeline__item" wx:for="{{order.events}}" wx:key="id">
+      <view class="timeline__dot"></view>
+      <view class="timeline__copy">
+        <text class="timeline__event">{{item.title}}</text>
+        <text class="timeline__detail">{{item.detail}}</text>
+        <text class="timeline__time">{{item.timeText}}</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<view wx:else class="page">
+  <view class="empty card">
+    <view class="empty__icon">🔐</view>
+    <text class="empty__title">订单不存在或无权查看</text>
+    <text class="empty__desc">订单只对发布者和接单者开放。</text>
+    <button class="btn btn--secondary back-button" bindtap="backOrders">返回订单列表</button>
+  </view>
+</view>

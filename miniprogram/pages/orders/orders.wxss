@@ -1,0 +1,148 @@
+.orders-page {
+  padding-top: 12rpx;
+}
+
+.orders-head {
+  padding: 20rpx 4rpx 28rpx;
+}
+
+.orders-head__eyebrow,
+.orders-head__title,
+.orders-head__desc {
+  display: block;
+}
+
+.orders-head__eyebrow {
+  color: var(--brand);
+  font-size: 20rpx;
+  font-weight: 800;
+  letter-spacing: 3rpx;
+}
+
+.orders-head__title {
+  margin-top: 10rpx;
+  font-size: 38rpx;
+  font-weight: 800;
+}
+
+.orders-head__desc {
+  margin-top: 12rpx;
+  color: var(--muted);
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.tabs {
+  display: flex;
+  padding: 8rpx;
+  background: #e9eeeb;
+  border-radius: 22rpx;
+}
+
+.tab {
+  flex: 1;
+  padding: 18rpx 0;
+  color: var(--muted);
+  border-radius: 16rpx;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.tab--active {
+  color: var(--ink);
+  background: #fff;
+  box-shadow: 0 6rpx 18rpx rgba(31, 60, 51, 0.08);
+  font-weight: 750;
+}
+
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  margin-top: 22rpx;
+}
+
+.order-card {
+  padding: 28rpx;
+}
+
+.order-card__head,
+.order-card__peer,
+.order-card__foot {
+  display: flex;
+  align-items: center;
+}
+
+.order-card__head,
+.order-card__foot {
+  justify-content: space-between;
+}
+
+.order-card__role {
+  color: var(--muted);
+  font-size: 22rpx;
+}
+
+.order-card__title {
+  display: block;
+  margin: 20rpx 0;
+  font-size: 31rpx;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.order-card__peer {
+  color: #53605a;
+  font-size: 23rpx;
+}
+
+.peer-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42rpx;
+  height: 42rpx;
+  margin-right: 10rpx;
+  color: #fff;
+  background: var(--brand);
+  border-radius: 50%;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+.peer-star {
+  margin-left: auto;
+  color: #a76a16;
+}
+
+.order-card__foot {
+  margin-top: 22rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid var(--line);
+}
+
+.order-card__label,
+.order-card__due {
+  display: block;
+}
+
+.order-card__label {
+  color: var(--muted);
+  font-size: 20rpx;
+}
+
+.order-card__due {
+  margin-top: 5rpx;
+  font-size: 23rpx;
+  font-weight: 650;
+}
+
+.empty {
+  margin-top: 24rpx;
+}
+
+.empty-button {
+  width: 260rpx;
+  min-height: 76rpx;
+  margin-top: 28rpx;
+}

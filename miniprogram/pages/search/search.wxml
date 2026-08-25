@@ -1,0 +1,49 @@
+<view class="page search-page">
+  <view class="search-head">
+    <view class="search-input-wrap">
+      <text class="search-icon">⌕</text>
+      <input class="search-input" value="{{keyword}}" bindinput="onKeywordInput" bindconfirm="submitSearch" confirm-type="search" placeholder="任务、地点、关键词" />
+      <text wx:if="{{keyword}}" class="clear" bindtap="clearSearch">×</text>
+    </view>
+    <button class="search-submit" bindtap="submitSearch">搜索</button>
+  </view>
+
+  <scroll-view class="category-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
+    <view class="category-row">
+      <view wx:for="{{categories}}" wx:key="*this" class="category-chip {{activeCategory === item ? 'category-chip--active' : ''}}" data-name="{{item}}" bindtap="chooseCategory">{{item}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="result-head">
+    <text class="result-count">{{tasks.length}} 条待接任务</text>
+    <text class="result-sort">按截止时间排序</text>
+  </view>
+
+  <view wx:if="{{tasks.length}}" class="results">
+    <view class="result-card card" wx:for="{{tasks}}" wx:key="id" data-id="{{item.id}}" bindtap="openTask">
+      <view class="result-card__head">
+        <view class="result-card__badges">
+          <text class="pill">{{item.category}}</text>
+          <text wx:if="{{item.isMine}}" class="pill pill--neutral">我发布的</text>
+        </view>
+        <text class="money">¥{{item.amount}}</text>
+      </view>
+      <text class="result-card__title">{{item.title}}</text>
+      <text class="result-card__location">📍 {{item.location}}</text>
+      <view class="result-card__foot">
+        <view class="publisher">
+          <view class="publisher__avatar">{{item.publisher.avatarText}}</view>
+          <text>{{item.publisher.nickname}} · {{item.publisher.stars}}星</text>
+        </view>
+        <text class="deadline">{{item.deadlineText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="empty card">
+    <view class="empty__icon">⌕</view>
+    <text class="empty__title">没有找到匹配的任务</text>
+    <text class="empty__desc">换个关键词或分类试试，也可以发布一个新需求。</text>
+    <button class="btn btn--secondary empty-button" bindtap="goPublish">发布需求</button>
+  </view>
+</view>

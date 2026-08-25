@@ -1,0 +1,23 @@
+<view class="page rules-page">
+  <view class="rules-hero">
+    <view class="rules-hero__mark">盾</view>
+    <text class="rules-hero__eyebrow">GREEN CAMPUS COMMUNITY</text>
+    <text class="rules-hero__title">真实任务，干净交易空间</text>
+    <text class="rules-hero__desc">这是MVP展示版规则摘要。正式上线前需由运营主体根据实际服务类目、支付产品和属地要求完成法律审查。</text>
+  </view>
+
+  <view class="rules-list">
+    <view class="rule card" wx:for="{{sections}}" wx:key="title">
+      <text class="rule__title">{{item.title}}</text>
+      <text class="rule__body">{{item.body}}</text>
+    </view>
+  </view>
+
+  <view class="rule-warning card">
+    <text class="rule-warning__icon">!</text>
+    <view>
+      <text class="rule-warning__title">“用户端删除”不等于后台销毁</text>
+      <text class="rule-warning__body">为了退款、投诉、违法线索核查和法定留存，生产系统不能在订单完成时立即销毁全部记录。用户端隐藏与后台合规保存必须分开设计。</text>
+    </view>
+  </view>
+</view>

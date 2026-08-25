@@ -1,0 +1,83 @@
+<view class="page home">
+  <view class="welcome">
+    <view>
+      <text class="welcome__eyebrow">校园青蜓 · CAMPUS</text>
+      <text class="welcome__title">{{authenticated ? '你好，' + user.nickname : '校园需求，快速响应'}}</text>
+      <text class="welcome__school">📍 {{user.school || '完成认证后匹配本校任务'}} · {{user.campus || '安全校园互助'}}</text>
+    </view>
+    <view class="welcome__mark">蜓</view>
+  </view>
+
+  <view class="search-box" bindtap="goSearch">
+    <text class="search-box__icon">⌕</text>
+    <input class="search-box__input" value="{{keyword}}" bindinput="onKeywordInput" bindconfirm="submitSearch" confirm-type="search" placeholder="搜任务、地点或分类" />
+    <view class="search-box__button" catchtap="submitSearch">搜索</view>
+  </view>
+
+  <view class="hero card">
+    <text class="hero__badge">校内认证 · 固定金额</text>
+    <text class="hero__title">这一单，交给附近的同学</text>
+    <text class="hero__desc">任务公开审核，接单后转入双方订单。不要发送微信号或绕过平台转账。</text>
+    <view class="hero__actions">
+      <button class="btn btn--primary hero__button" bindtap="goPublish">我要发布需求</button>
+      <button class="btn btn--secondary hero__button" bindtap="goSearch">我要接单</button>
+    </view>
+  </view>
+
+  <view class="section-title">
+    <text class="section-title__main">按类别找</text>
+    <text class="section-title__action" bindtap="goSearch">全部任务 →</text>
+  </view>
+  <view class="category-grid">
+    <view class="category-card" wx:for="{{categories}}" wx:key="name" data-name="{{item.name}}" bindtap="chooseCategory">
+      <text class="category-card__icon">{{item.icon}}</text>
+      <text class="category-card__name">{{item.name}}</text>
+    </view>
+  </view>
+
+  <view class="rank-banner card" bindtap="goRanking">
+    <view>
+      <text class="rank-banner__eyebrow">青蜓星级</text>
+      <text class="rank-banner__title">本校守信榜</text>
+      <text class="rank-banner__desc">完成率、守时率与有效评价共同计算</text>
+    </view>
+    <text class="rank-banner__arrow">→</text>
+  </view>
+
+  <view class="section-title">
+    <text class="section-title__main">即将截止</text>
+    <text class="section-title__action" bindtap="goSearch">查看全部 →</text>
+  </view>
+
+  <view wx:if="{{tasks.length}}" class="task-list">
+    <view class="task-card card" wx:for="{{tasks}}" wx:key="id" data-id="{{item.id}}" bindtap="openTask">
+      <view class="task-card__top">
+        <text class="pill">{{item.category}}</text>
+        <text class="money">¥{{item.amount}}</text>
+      </view>
+      <text class="task-card__title">{{item.title}}</text>
+      <view class="task-card__meta">
+        <text>{{item.campus}}</text>
+        <text class="dot">·</text>
+        <text>{{item.deadlineText}}</text>
+      </view>
+      <view class="task-card__bottom">
+        <text class="task-card__verify">✓ 校园身份已认证</text>
+        <text class="task-card__go">详情 →</text>
+      </view>
+    </view>
+  </view>
+  <view wx:else class="empty card">
+    <view class="empty__icon">🍃</view>
+    <text class="empty__title">暂时没有待接任务</text>
+    <text class="empty__desc">稍后刷新看看，或者发布一个新的校园需求。</text>
+  </view>
+
+  <view wx:if="{{!authenticated}}" class="auth-tip card">
+    <view>
+      <text class="auth-tip__title">还没有完成校园认证</text>
+      <text class="auth-tip__desc">浏览无需登录，发布与接单前再认证。</text>
+    </view>
+    <button class="auth-tip__button" bindtap="goLogin">去认证</button>
+  </view>
+</view>

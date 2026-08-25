@@ -1,0 +1,80 @@
+<view class="page profile-page">
+  <view wx:if="{{authenticated}}" class="profile-hero">
+    <view class="profile-hero__avatar">{{user.avatarText}}</view>
+    <view class="profile-hero__copy">
+      <view class="profile-hero__name-row">
+        <text class="profile-hero__name">{{user.nickname}}</text>
+        <text class="profile-hero__verified">✓ 校园认证</text>
+      </view>
+      <text class="profile-hero__school">{{user.school}} · {{user.campus}}</text>
+      <text class="profile-hero__contact">{{user.phoneMasked}} · {{user.studentNoMasked}}</text>
+    </view>
+  </view>
+
+  <view wx:else class="profile-hero profile-hero--guest">
+    <view class="profile-hero__avatar">游</view>
+    <view class="profile-hero__copy">
+      <text class="profile-hero__name">游客浏览</text>
+      <text class="profile-hero__school">完成认证后发布和接单</text>
+    </view>
+    <button class="profile-hero__login" bindtap="goLogin">去认证</button>
+  </view>
+
+  <view class="stats card">
+    <view class="stat">
+      <text class="stat__value">{{stats.published}}</text>
+      <text class="stat__label">发布</text>
+    </view>
+    <view class="stat">
+      <text class="stat__value">{{stats.accepted}}</text>
+      <text class="stat__label">接单</text>
+    </view>
+    <view class="stat">
+      <text class="stat__value">{{stats.active}}</text>
+      <text class="stat__label">进行中</text>
+    </view>
+    <view class="stat">
+      <text class="stat__value">{{user.stars || '--'}}</text>
+      <text class="stat__label">青蜓星</text>
+    </view>
+  </view>
+
+  <view wx:if="{{authenticated}}" class="credit card">
+    <view class="credit__top">
+      <view>
+        <text class="credit__eyebrow">CREDIT PROFILE</text>
+        <text class="credit__title">{{user.stars}} 青蜓星</text>
+      </view>
+      <text class="credit__badge">守信用户</text>
+    </view>
+    <view class="credit__bar"><view class="credit__progress" style="width: {{creditPercent}}%"></view></view>
+    <view class="credit__meta">
+      <text>完成 {{user.completed}} 单</text>
+      <text>守时率 {{user.onTimeRate}}%</text>
+    </view>
+  </view>
+
+  <view class="menu card">
+    <view class="menu__item" bindtap="goOrders">
+      <view class="menu__icon">▣</view>
+      <view class="menu__copy"><text class="menu__title">我的订单</text><text class="menu__desc">查看发布与接取的任务</text></view>
+      <text class="menu__arrow">›</text>
+    </view>
+    <view class="menu__item" bindtap="goRanking">
+      <view class="menu__icon menu__icon--gold">★</view>
+      <view class="menu__copy"><text class="menu__title">本校青蜓榜</text><text class="menu__desc">按信用与真实完成记录排序</text></view>
+      <text class="menu__arrow">›</text>
+    </view>
+    <view class="menu__item" bindtap="goRules">
+      <view class="menu__icon menu__icon--blue">盾</view>
+      <view class="menu__copy"><text class="menu__title">社区与交易规则</text><text class="menu__desc">任务边界、争议和隐私说明</text></view>
+      <text class="menu__arrow">›</text>
+    </view>
+  </view>
+
+  <view class="demo card">
+    <text class="demo__title">开发态工具</text>
+    <text class="demo__desc">当前项目使用本地模拟数据。真实短信、支付、学生认证和客服系统尚未接入。</text>
+    <button class="btn btn--danger demo__button" bindtap="resetDemo">重置演示数据</button>
+  </view>
+</view>

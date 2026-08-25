@@ -1,0 +1,13 @@
+{
+  "desc": "校园青蜓页面索引配置",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "pages/index/index"
+    },
+    {
+      "action": "disallow",
+      "page": "*"
+    }
+  ]
+}

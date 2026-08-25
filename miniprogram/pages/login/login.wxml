@@ -1,0 +1,69 @@
+<view class="page login-page">
+  <view class="login-hero">
+    <view class="login-hero__mark">蜓</view>
+    <text class="login-hero__eyebrow">CAMPUS VERIFIED</text>
+    <text class="login-hero__title">三步完成校园认证</text>
+    <text class="login-hero__desc">浏览任务无需登录；发布、接单和订单沟通前，需要确认微信、手机号和校园身份。</text>
+  </view>
+
+  <view class="step card {{wxReady ? 'step--done' : ''}}">
+    <view class="step__head">
+      <text class="step__number">1</text>
+      <view class="step__copy">
+        <text class="step__title">微信登录</text>
+        <text class="step__desc">用于建立小程序账号</text>
+      </view>
+      <text wx:if="{{wxReady}}" class="step__ok">✓ 已完成</text>
+    </view>
+    <button wx:if="{{!wxReady}}" class="btn btn--primary step__button" bindtap="doWechatLogin">微信快速登录</button>
+  </view>
+
+  <view class="step card">
+    <view class="step__head">
+      <text class="step__number">2</text>
+      <view class="step__copy">
+        <text class="step__title">验证手机号</text>
+        <text class="step__desc">发生订单异常时用于安全联系</text>
+      </view>
+    </view>
+    <view class="field compact-field">
+      <input class="input" type="number" maxlength="11" value="{{phone}}" data-field="phone" bindinput="onInput" placeholder="请输入手机号" />
+    </view>
+    <view class="code-row">
+      <input class="input code-row__input" type="number" maxlength="6" value="{{code}}" data-field="code" bindinput="onInput" placeholder="短信验证码" />
+      <button class="code-row__button" bindtap="sendCode">{{codeSent ? '重新发送' : '发送验证码'}}</button>
+    </view>
+    <text class="dev-tip">开发态提示：短信验证码固定为 123456</text>
+  </view>
+
+  <view class="step card">
+    <view class="step__head">
+      <text class="step__number">3</text>
+      <view class="step__copy">
+        <text class="step__title">校园身份</text>
+        <text class="step__desc">只向他人展示“校园身份已认证”</text>
+      </view>
+    </view>
+    <view class="field compact-field">
+      <text class="field__label">学校</text>
+      <input class="input" value="{{school}}" data-field="school" bindinput="onInput" placeholder="学校全称" />
+    </view>
+    <view class="field compact-field">
+      <text class="field__label">校区</text>
+      <input class="input" value="{{campus}}" data-field="campus" bindinput="onInput" placeholder="如：东校区" />
+    </view>
+    <view class="field compact-field">
+      <text class="field__label">校园卡号或学号</text>
+      <input class="input" maxlength="24" value="{{studentNo}}" data-field="studentNo" bindinput="onInput" placeholder="至少6位，仅保存脱敏尾号" />
+      <text class="field__hint">生产版本应通过学校接口或受限审核服务校验，不向普通客服或交易对象展示原始号码。</text>
+    </view>
+  </view>
+
+  <view class="agreement" bindtap="toggleAgreement">
+    <view class="checkbox {{agreed ? 'checkbox--checked' : ''}}">{{agreed ? '✓' : ''}}</view>
+    <text>我已阅读并同意</text>
+    <text class="agreement__link" catchtap="openRules">《平台规则与隐私说明》</text>
+  </view>
+
+  <button class="btn btn--primary submit" disabled="{{submitting}}" bindtap="submit">完成认证</button>
+</view>
