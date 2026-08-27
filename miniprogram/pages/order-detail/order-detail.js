@@ -1,51 +1,71 @@
 const dataService = require('../../services/data-service')
 const { formatDateTime } = require('../../utils/format')
 
+function formatOrder(raw) {
+  if (!raw) return null
+  return {
+    ...raw,
+    roleText: raw.role === 'publisher' ? '发布者' : '接单者',
+    peer: raw.role === 'publisher' ? raw.runner : raw.publisher,
+    createdText: formatDateTime(raw.createdAt),
+    dueText: formatDateTime(raw.serviceDueAt),
+    submittedText: formatDateTime(raw.submittedAt),
+    autoConfirmText: formatDateTime(raw.autoConfirmAt),
+    hiddenText: formatDateTime(raw.hiddenAt),
+    events: (raw.events || []).slice().reverse().map(item => ({ ...item, timeText: formatDateTime(item.createdAt) }))
+  }
+}
+
 Page({
   data: {
     id: '',
     order: null,
     currentUserId: '',
-    message: '',
     evidence: '',
     disputeReason: '',
-    showDispute: false
+    showDispute: false,
+    loading: true
   },
 
   onLoad(options) {
-    this.setData({ id: options.id || '' })
+    const id = options.id || ''
+    const app = getApp()
+    const cached = app && app.globalData.prefetchedOrder
+    this.setData({
+      id,
+      order: cached && cached.id === id && cached.publisher && cached.runner ? formatOrder(cached) : null
+    })
   },
 
   onShow() {
-    this.load()
+    this.load({ silent: Boolean(this.data.order) })
   },
 
-  async load() {
+  async load(options) {
+    const silent = options && options.silent
+    if (!silent) this.setData({ loading: true })
     try {
-      const [session, raw] = await Promise.all([
+      const results = await Promise.all([
         dataService.session(),
         dataService.getOrder(this.data.id)
       ])
+      const session = results[0]
+      const raw = results[1]
       if (!raw) {
-        this.setData({ order: null, currentUserId: session.user ? session.user.id : '' })
+        this.setData({ order: null, currentUserId: session.user ? session.user.id : '', loading: false })
         return
       }
-      const order = {
-        ...raw,
-        roleText: raw.role === 'publisher' ? '发布者' : '接单者',
-        peer: raw.role === 'publisher' ? raw.runner : raw.publisher,
-        createdText: formatDateTime(raw.createdAt),
-        dueText: formatDateTime(raw.serviceDueAt),
-        submittedText: formatDateTime(raw.submittedAt),
-        autoConfirmText: formatDateTime(raw.autoConfirmAt),
-        hiddenText: formatDateTime(raw.hiddenAt),
-        events: raw.events.slice().reverse().map(item => ({ ...item, timeText: formatDateTime(item.createdAt) })),
-        messages: raw.messages.map(item => ({ ...item, isMe: item.senderId === session.user.id, timeText: formatDateTime(item.createdAt) }))
+      const order = formatOrder(raw)
+      this.setData({ order, currentUserId: session.user.id, loading: false })
+      const app = getApp()
+      if (app) {
+        app.globalData.session = session
+        app.globalData.prefetchedOrder = raw
       }
-      this.setData({ order, currentUserId: session.user.id })
       wx.setNavigationBarTitle({ title: raw.statusText })
     } catch (error) {
       wx.showToast({ title: error.message, icon: 'none' })
+      this.setData({ loading: false })
     }
   },
 
@@ -97,18 +117,8 @@ Page({
     }
   },
 
-  async sendMessage() {
-    try {
-      await dataService.addMessage(this.data.id, this.data.message)
-      this.setData({ message: '' })
-      this.load()
-    } catch (error) {
-      wx.showToast({ title: error.message, icon: 'none' })
-    }
-  },
-
-  openRules() {
-    wx.navigateTo({ url: '/pages/rules/rules' })
+  goChat() {
+    wx.navigateTo({ url: `/pages/chat/chat?id=${this.data.id}` })
   },
 
   backOrders() {

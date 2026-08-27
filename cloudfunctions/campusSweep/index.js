@@ -22,7 +22,12 @@ exports.main = async () => {
   const tasks = await db.collection('tasks').where({ status: 'open' }).limit(100).get()
   for (const task of tasks.data) {
     if (new Date(task.expiresAt).getTime() <= current.getTime()) {
-      await db.collection('tasks').doc(task._id).update({ data: { status: 'expired', updatedAt: current } })
+      await db.collection('tasks').doc(task._id).update({
+        data: { status: 'expired', fundsStatus: task.fundsStatus === 'held' ? 'refunded' : task.fundsStatus, updatedAt: current }
+      })
+      if (task.fundsStatus === 'held') {
+        await db.collection('users').doc(task.publisherId).update({ data: { walletBalance: command.inc(Number(task.amount)), updatedAt: current } })
+      }
       summary.expiredTasks += 1
     }
   }
@@ -54,6 +59,9 @@ exports.main = async () => {
           updatedAt: current
         }
       })
+      if (order.paymentStatus === 'simulated_held') {
+        await db.collection('users').doc(order.publisherId).update({ data: { walletBalance: command.inc(Number(order.amount)), updatedAt: current } })
+      }
       summary.canceledOrders += 1
     }
   }
@@ -71,6 +79,9 @@ exports.main = async () => {
           updatedAt: current
         }
       })
+      if (order.paymentStatus === 'simulated_held') {
+        await db.collection('users').doc(order.runnerId).update({ data: { walletBalance: command.inc(Number(order.amount)), completed: command.inc(1), updatedAt: current } })
+      }
       summary.completedOrders += 1
     }
   }

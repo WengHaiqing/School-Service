@@ -105,8 +105,80 @@
   font-size: 21rpx;
 }
 
+.wallet,
 .credit {
   margin-top: 20rpx;
+}
+
+.wallet {
+  padding: 28rpx;
+}
+
+.wallet__top,
+.wallet__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wallet__label,
+.wallet__balance,
+.wallet__tip {
+  display: block;
+}
+
+.wallet__label {
+  color: var(--muted);
+  font-size: 21rpx;
+}
+
+.wallet__balance {
+  margin-top: 5rpx;
+  font-size: 48rpx;
+  font-weight: 850;
+}
+
+.wallet__currency {
+  margin-right: 5rpx;
+  font-size: 27rpx;
+}
+
+.wallet__tag {
+  padding: 8rpx 14rpx;
+  color: var(--warning);
+  background: var(--warning-soft);
+  border-radius: 999rpx;
+  font-size: 19rpx;
+}
+
+.wallet__actions {
+  gap: 16rpx;
+  margin-top: 22rpx;
+}
+
+.wallet__actions button {
+  flex: 1;
+  min-height: 72rpx;
+  margin: 0;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-radius: 18rpx;
+  font-size: 23rpx;
+  font-weight: 700;
+}
+
+.wallet__actions button:last-child {
+  color: #53605a;
+  background: #eef2ef;
+}
+
+.wallet__tip {
+  margin-top: 13rpx;
+  color: var(--muted);
+  font-size: 19rpx;
+}
+
+.credit {
   padding: 30rpx;
   color: #fff;
   background: linear-gradient(135deg, #1c3c35, #087f73);

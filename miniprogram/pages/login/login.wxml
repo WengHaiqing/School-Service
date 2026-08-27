@@ -65,5 +65,5 @@
     <text class="agreement__link" catchtap="openRules">《平台规则与隐私说明》</text>
   </view>
 
-  <button class="btn btn--primary submit" disabled="{{submitting}}" bindtap="submit">完成认证</button>
+  <button class="btn btn--primary submit" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">{{submitting ? '认证中…' : '完成认证'}}</button>
 </view>

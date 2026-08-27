@@ -32,6 +32,15 @@
     </view>
   </view>
 
+  <view class="chat-entry card" bindtap="goChat">
+    <view class="chat-entry__icon">聊</view>
+    <view class="chat-entry__copy">
+      <text class="chat-entry__title">联系{{order.peer.nickname}}</text>
+      <text class="chat-entry__desc">进入独立聊天页，沟通本订单的任务细节</text>
+    </view>
+    <text class="chat-entry__arrow">›</text>
+  </view>
+
   <view wx:if="{{(order.role === 'runner') && (order.status === 'active' || order.status === 'grace')}}" class="action-card card">
     <text class="action-card__eyebrow">接单者操作</text>
     <text class="action-card__title">提交完成说明</text>
@@ -67,27 +76,6 @@
     <text bindtap="toggleDispute">遇到虚假信息或交易问题？发起争议</text>
   </view>
 
-  <view class="chat card">
-    <view class="chat__head">
-      <view>
-        <text class="chat__title">订单沟通</text>
-        <text class="chat__desc">消息与订单绑定，请勿发送联系方式或线下转账</text>
-      </view>
-      <text class="chat__rules" bindtap="openRules">规则</text>
-    </view>
-    <view wx:if="{{order.messages.length}}" class="messages">
-      <view wx:for="{{order.messages}}" wx:key="id" class="message {{item.isMe ? 'message--mine' : ''}}">
-        <text class="message__content">{{item.content}}</text>
-        <text class="message__time">{{item.timeText}}</text>
-      </view>
-    </view>
-    <view wx:else class="chat__empty">还没有消息，把任务细节留在订单里吧。</view>
-    <view wx:if="{{order.status !== 'completed' && order.status !== 'canceled'}}" class="composer">
-      <input class="composer__input" maxlength="200" value="{{message}}" data-field="message" bindinput="onInput" bindconfirm="sendMessage" placeholder="输入订单消息" />
-      <button class="composer__send" bindtap="sendMessage">发送</button>
-    </view>
-  </view>
-
   <view class="timeline card">
     <text class="timeline__title">订单进度</text>
     <view class="timeline__item" wx:for="{{order.events}}" wx:key="id">
@@ -99,6 +87,13 @@
       </view>
     </view>
   </view>
+</view>
+
+<view wx:elif="{{loading}}" class="page order-loading">
+  <view class="order-skeleton order-skeleton--hero"></view>
+  <view class="order-skeleton order-skeleton--card"></view>
+  <view class="order-skeleton order-skeleton--row"></view>
+  <view class="order-skeleton order-skeleton--card"></view>
 </view>
 
 <view wx:else class="page">

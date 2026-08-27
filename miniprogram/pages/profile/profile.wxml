@@ -34,9 +34,24 @@
       <text class="stat__label">进行中</text>
     </view>
     <view class="stat">
-      <text class="stat__value">{{user.stars || '--'}}</text>
+      <text class="stat__value">{{authenticated ? user.stars : '--'}}</text>
       <text class="stat__label">青蜓星</text>
     </view>
+  </view>
+
+  <view wx:if="{{authenticated}}" class="wallet card">
+    <view class="wallet__top">
+      <view>
+        <text class="wallet__label">我的钱包 · 测试余额</text>
+        <text class="wallet__balance"><text class="wallet__currency">¥</text>{{user.walletText}}</text>
+      </view>
+      <text class="wallet__tag">开发态</text>
+    </view>
+    <view class="wallet__actions">
+      <button data-action="recharge" bindtap="walletAction">充值</button>
+      <button data-action="withdraw" bindtap="walletAction">提现</button>
+    </view>
+    <text class="wallet__tip">仅用于当前内测流程，不连接银行卡或微信支付。</text>
   </view>
 
   <view wx:if="{{authenticated}}" class="credit card">

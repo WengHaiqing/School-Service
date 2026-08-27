@@ -8,6 +8,7 @@
     "pages/login/login",
     "pages/task-detail/task-detail",
     "pages/order-detail/order-detail",
+    "pages/chat/chat",
     "pages/ranking/ranking",
     "pages/rules/rules"
   ],
@@ -25,7 +26,6 @@
     "borderStyle": "white",
     "list": [
       { "pagePath": "pages/index/index", "text": "首页" },
-      { "pagePath": "pages/search/search", "text": "找任务" },
       { "pagePath": "pages/publish/publish", "text": "发布" },
       { "pagePath": "pages/orders/orders", "text": "订单" },
       { "pagePath": "pages/profile/profile", "text": "我的" }

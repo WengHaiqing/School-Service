@@ -13,6 +13,34 @@
   </view>
 
   <block wx:else>
+    <view wx:if="{{!messageSyncReady}}" class="cloud-warning">
+      <text class="cloud-warning__title">消息提醒服务尚未更新</text>
+      <text class="cloud-warning__desc">请先重新部署 campusApi 云函数，部署后下拉刷新即可恢复咨询和未读提示。</text>
+    </view>
+
+    <view wx:if="{{inquiries.length}}" class="inquiry-section card">
+      <view class="inquiry-section__head">
+        <view>
+          <text class="inquiry-section__title">任务咨询</text>
+          <text class="inquiry-section__desc">接单前与任务发布者或咨询者沟通</text>
+        </view>
+        <text wx:if="{{inquiryUnreadCount}}" class="inquiry-section__total">{{inquiryUnreadCount}}条新消息</text>
+      </view>
+      <view class="inquiry-item" wx:for="{{inquiries}}" wx:key="id" data-id="{{item.id}}" bindtap="openInquiry">
+        <view class="inquiry-item__avatar">{{item.peer.avatarText}}</view>
+        <view class="inquiry-item__copy">
+          <view class="inquiry-item__line">
+            <text class="inquiry-item__name">{{item.peer.nickname}} · {{item.roleText}}</text>
+            <text class="inquiry-item__time">{{item.timeText}}</text>
+          </view>
+          <text class="inquiry-item__task">{{item.title}}</text>
+          <text class="inquiry-item__preview {{item.unreadCount ? 'inquiry-item__preview--unread' : ''}}">{{item.previewText}}</text>
+        </view>
+        <text wx:if="{{item.unreadCount}}" class="inquiry-item__badge">{{item.unreadCount}}</text>
+        <text wx:else class="inquiry-item__arrow">›</text>
+      </view>
+    </view>
+
     <view class="tabs">
       <view wx:for="{{tabs}}" wx:key="key" class="tab {{activeTab === item.key ? 'tab--active' : ''}}" data-key="{{item.key}}" bindtap="chooseTab">{{item.label}}</view>
     </view>
@@ -21,13 +49,20 @@
       <view class="order-card card" wx:for="{{orders}}" wx:key="id" data-id="{{item.id}}" bindtap="openOrder">
         <view class="order-card__head">
           <text class="pill {{item.status === 'disputed' || item.status === 'grace' ? 'pill--danger' : item.status === 'completed' || item.status === 'canceled' ? 'pill--neutral' : 'pill--warm'}}">{{item.statusText}}</text>
-          <text class="order-card__role">{{item.roleText}}</text>
+          <view class="order-card__role {{item.role === 'publisher' ? 'order-card__role--publish' : 'order-card__role--accept'}}">
+            <text class="order-card__role-dot">●</text>
+            <text>{{item.roleText}}</text>
+          </view>
         </view>
         <text class="order-card__title">{{item.title}}</text>
         <view class="order-card__peer">
           <view class="peer-avatar">{{item.otherUser.avatarText}}</view>
           <text>交易对象：{{item.otherUser.nickname}}</text>
           <text class="peer-star">★ {{item.otherUser.stars}}</text>
+        </view>
+        <view class="order-card__message {{item.unreadCount ? 'order-card__message--unread' : item.hasMessages ? 'order-card__message--history' : ''}}">
+          <text class="order-card__message-dot">{{item.unreadCount ? '●' : '○'}}</text>
+          <text class="order-card__message-text">{{item.messageText}}</text>
         </view>
         <view class="order-card__foot">
           <view>

@@ -5,7 +5,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
 const command = db.command
-const COLLECTIONS = ['users', 'tasks', 'orders', 'messages', 'reports', 'system_meta']
+const COLLECTIONS = ['users', 'tasks', 'orders', 'messages', 'conversations', 'reports', 'system_meta']
+const TASK_CATEGORIES = ['校园跑腿', '跳蚤市场', '自由任务']
 const RISKY_CONTENT = /(代写|论文|作业|代考|代课|替签到|刷单|跑分|银行卡|贷款|赌博|色情|陪酒|代实名|培训费|先交押金)/i
 const OFF_PLATFORM_CONTENT = /(1\d{10})|(微信|vx|v信|加我|二维码|支付宝|线下转账)/i
 
@@ -37,6 +38,14 @@ function cleanText(value, maxLength) {
   return String(value || '').trim().slice(0, maxLength)
 }
 
+function normalizeMoney(value) {
+  return Math.round(Number(value || 0) * 100) / 100
+}
+
+function normalizeCategory(value) {
+  return TASK_CATEGORIES.includes(value) ? value : '自由任务'
+}
+
 function hash(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex')
 }
@@ -66,7 +75,8 @@ function selfUser(user) {
     ...publicUser(user),
     phoneMasked: user.phoneMasked || '',
     studentNoMasked: user.studentNoMasked || '',
-    verificationMode: user.verificationMode || 'none'
+    verificationMode: user.verificationMode || 'none',
+    walletBalance: normalizeMoney(user.walletBalance)
   }
 }
 
@@ -75,7 +85,7 @@ function serializeTask(task, publisher, currentUserId) {
     id: task._id,
     publisherId: task.publisherId,
     title: task.title,
-    category: task.category,
+    category: normalizeCategory(task.category),
     description: task.description,
     delivery: task.delivery,
     location: task.location,
@@ -160,7 +170,14 @@ async function ensureCollections() {
 
 async function ensureUser(openid) {
   const result = await db.collection('users').where({ openid }).limit(1).get()
-  if (result.data.length) return result.data[0]
+  if (result.data.length) {
+    const existing = result.data[0]
+    if (!Number.isFinite(Number(existing.walletBalance))) {
+      await db.collection('users').doc(existing._id).update({ data: { walletBalance: 0, updatedAt: now() } })
+      existing.walletBalance = 0
+    }
+    return existing
+  }
 
   const createdAt = now()
   const user = {
@@ -176,6 +193,7 @@ async function ensureUser(openid) {
     phoneMasked: '',
     studentNoMasked: '',
     verificationMode: 'none',
+    walletBalance: 0,
     status: 'active',
     createdAt,
     updatedAt: createdAt
@@ -207,15 +225,18 @@ async function getOrderForUser(orderId, userId) {
   return order
 }
 
-async function serializeOrder(order, currentUserId, includeMessages = false) {
-  const users = await getUsersByIds([order.publisherId, order.runnerId])
+async function serializeOrder(order, currentUserId, includeMessages = false, cachedUsers = null) {
+  const users = cachedUsers || await getUsersByIds([order.publisherId, order.runnerId])
   let messages = []
+  let messageDocuments = []
   if (includeMessages) {
     const result = await db.collection('messages').where({ orderId: order._id }).limit(100).get()
-    messages = result.data
+    messageDocuments = result.data
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-      .map(item => serializeMessage(item, currentUserId))
+    messages = messageDocuments.map(item => serializeMessage(item, currentUserId))
   }
+  const latestMessage = messageDocuments.length ? messageDocuments[messageDocuments.length - 1] : null
+  const unreadCount = messageDocuments.filter(item => item.recipientId === currentUserId && !item.readAt).length
   return {
     id: order._id,
     taskId: order.taskId,
@@ -238,9 +259,59 @@ async function serializeOrder(order, currentUserId, includeMessages = false) {
     hiddenAt: toIso(order.hiddenAt),
     events: (order.events || []).map(serializeEvent),
     messages,
+    hasMessages: messageDocuments.length > 0,
+    lastMessagePreview: latestMessage ? latestMessage.content : '',
+    lastMessageAt: latestMessage ? toIso(latestMessage.createdAt) : null,
+    unreadCount,
     publisher: publicUser(users[order.publisherId]),
     runner: publicUser(users[order.runnerId]),
     role: order.publisherId === currentUserId ? 'publisher' : 'runner'
+  }
+}
+
+function inquiryDocumentId(taskId, inquirerId) {
+  return `inquiry_${hash(`${taskId}:${inquirerId}`).slice(0, 32)}`
+}
+
+async function getInquiryForUser(conversationId, userId) {
+  const result = await db.collection('conversations').doc(conversationId).get()
+  const conversation = result.data
+  if (!conversation || (conversation.publisherId !== userId && conversation.inquirerId !== userId)) {
+    throw new Error('咨询不存在或无权查看')
+  }
+  return conversation
+}
+
+async function serializeInquiry(conversation, currentUserId, includeMessages = false, cachedUsers = null) {
+  const users = cachedUsers || await getUsersByIds([conversation.publisherId, conversation.inquirerId])
+  let messages = []
+  if (includeMessages) {
+    const result = await db.collection('messages').where({ conversationId: conversation._id }).limit(100).get()
+    messages = result.data
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      .map(item => serializeMessage(item, currentUserId))
+  }
+  const isPublisher = conversation.publisherId === currentUserId
+  const peerId = isPublisher ? conversation.inquirerId : conversation.publisherId
+  return {
+    id: conversation._id,
+    type: 'inquiry',
+    taskId: conversation.taskId,
+    title: conversation.title,
+    amount: Number(conversation.amount || 0),
+    status: conversation.status || 'open',
+    statusText: conversation.status === 'closed' ? '咨询已结束' : '任务咨询',
+    canSend: conversation.status !== 'closed',
+    createdAt: toIso(conversation.createdAt),
+    lastMessageAt: toIso(conversation.lastMessageAt),
+    lastMessagePreview: conversation.lastMessagePreview || '',
+    hasMessages: Boolean(conversation.lastMessagePreview),
+    unreadCount: Number(isPublisher ? conversation.unreadForPublisher || 0 : conversation.unreadForInquirer || 0),
+    role: isPublisher ? 'publisher' : 'inquirer',
+    peer: publicUser(users[peerId]),
+    publisher: publicUser(users[conversation.publisherId]),
+    inquirer: publicUser(users[conversation.inquirerId]),
+    messages
   }
 }
 
@@ -252,7 +323,12 @@ async function sweepLifecycle() {
   const taskResult = await db.collection('tasks').where({ status: 'open' }).limit(100).get()
   for (const task of taskResult.data) {
     if (new Date(task.expiresAt).getTime() <= current.getTime()) {
-      await db.collection('tasks').doc(task._id).update({ data: { status: 'expired', updatedAt: current } })
+      await db.collection('tasks').doc(task._id).update({
+        data: { status: 'expired', fundsStatus: task.fundsStatus === 'held' ? 'refunded' : task.fundsStatus, updatedAt: current }
+      })
+      if (task.fundsStatus === 'held') {
+        await db.collection('users').doc(task.publisherId).update({ data: { walletBalance: command.inc(Number(task.amount)), updatedAt: current } })
+      }
       expiredTasks += 1
     }
   }
@@ -271,6 +347,9 @@ async function sweepLifecycle() {
             updatedAt: current
           }
         })
+        if (order.paymentStatus === 'simulated_held') {
+          await db.collection('users').doc(order.runnerId).update({ data: { walletBalance: command.inc(Number(order.amount)), completed: command.inc(1), updatedAt: current } })
+        }
         updatedOrders += 1
       } else if (status === 'active' && new Date(order.serviceDueAt).getTime() <= current.getTime()) {
         await db.collection('orders').doc(order._id).update({
@@ -292,6 +371,9 @@ async function sweepLifecycle() {
             updatedAt: current
           }
         })
+        if (order.paymentStatus === 'simulated_held') {
+          await db.collection('users').doc(order.publisherId).update({ data: { walletBalance: command.inc(Number(order.amount)), updatedAt: current } })
+        }
         updatedOrders += 1
       }
     }
@@ -339,6 +421,31 @@ const actions = {
     return selfUser(refreshed.data)
   },
 
+  async rechargeWallet({ openid, payload }) {
+    const user = await requireVerified(openid)
+    const amount = normalizeMoney(payload.amount)
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 5000) throw new Error('充值金额必须在0至5000元之间')
+    await db.collection('users').doc(user._id).update({
+      data: { walletBalance: command.inc(amount), updatedAt: now() }
+    })
+    const refreshed = await db.collection('users').doc(user._id).get()
+    return selfUser(refreshed.data)
+  },
+
+  async withdrawWallet({ openid, payload }) {
+    const user = await requireVerified(openid)
+    const amount = normalizeMoney(payload.amount)
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 5000) throw new Error('提现金额必须在0至5000元之间')
+    return db.runTransaction(async transaction => {
+      const current = (await transaction.collection('users').doc(user._id).get()).data
+      if (normalizeMoney(current.walletBalance) < amount) throw new Error('钱包余额不足')
+      await transaction.collection('users').doc(user._id).update({
+        data: { walletBalance: normalizeMoney(current.walletBalance - amount), updatedAt: now() }
+      })
+      return selfUser({ ...current, walletBalance: normalizeMoney(current.walletBalance - amount) })
+    })
+  },
+
   async sweep() {
     return sweepLifecycle()
   },
@@ -347,11 +454,12 @@ const actions = {
     const user = await ensureUser(openid)
     const filters = payload || {}
     const keyword = cleanText(filters.keyword, 50).toLowerCase()
+    const selectedSchool = cleanText(filters.school, 40)
     const result = await db.collection('tasks').where({ status: 'open' }).limit(100).get()
     const tasks = result.data
       .filter(task => new Date(task.expiresAt).getTime() > Date.now())
-      .filter(task => !user.verified || task.school === user.school)
-      .filter(task => !filters.category || filters.category === '全部' || task.category === filters.category)
+      .filter(task => selectedSchool ? task.school === selectedSchool : (!user.verified || task.school === user.school))
+      .filter(task => !filters.category || filters.category === '全部' || normalizeCategory(task.category) === filters.category)
       .filter(task => !filters.campus || filters.campus === '全部校区' || task.campus === filters.campus)
       .filter(task => !keyword || `${task.title}${task.category}${task.location}${task.description}`.toLowerCase().includes(keyword))
       .sort((a, b) => new Date(a.expiresAt) - new Date(b.expiresAt))
@@ -374,22 +482,115 @@ const actions = {
     }
   },
 
+  async openTaskInquiry({ openid, payload }) {
+    const user = await requireVerified(openid)
+    const taskResult = await db.collection('tasks').doc(payload.id).get()
+    const task = taskResult.data
+    if (!task || task.status !== 'open' || new Date(task.expiresAt).getTime() <= Date.now()) {
+      throw new Error('任务已下架，暂时不能咨询')
+    }
+    if (task.publisherId === user._id) throw new Error('不能咨询自己发布的任务')
+    if (task.school !== user.school) throw new Error('只能咨询本人认证学校的任务')
+
+    const conversationId = inquiryDocumentId(task._id, user._id)
+    let conversation = null
+    try {
+      conversation = (await db.collection('conversations').doc(conversationId).get()).data
+    } catch (error) {
+      conversation = null
+    }
+    if (!conversation) {
+      conversation = {
+        taskId: task._id,
+        title: task.title,
+        amount: Number(task.amount),
+        publisherId: task.publisherId,
+        inquirerId: user._id,
+        status: 'open',
+        lastMessagePreview: '',
+        lastMessageAt: null,
+        unreadForPublisher: 0,
+        unreadForInquirer: 0,
+        createdAt: now(),
+        updatedAt: now()
+      }
+      await db.collection('conversations').doc(conversationId).set({ data: conversation })
+      conversation = { ...conversation, _id: conversationId }
+    }
+    return serializeInquiry(conversation, user._id, true)
+  },
+
+  async listTaskInquiries({ openid }) {
+    const user = await requireVerified(openid)
+    const [published, asked] = await Promise.all([
+      db.collection('conversations').where({ publisherId: user._id }).limit(50).get(),
+      db.collection('conversations').where({ inquirerId: user._id }).limit(50).get()
+    ])
+    const conversations = {}
+    published.data.concat(asked.data).forEach(item => { conversations[item._id] = item })
+    const sorted = Object.values(conversations)
+      .sort((a, b) => new Date(b.lastMessageAt || b.createdAt) - new Date(a.lastMessageAt || a.createdAt))
+    const users = await getUsersByIds(sorted.flatMap(item => [item.publisherId, item.inquirerId]))
+    return Promise.all(sorted.map(item => serializeInquiry(item, user._id, false, users)))
+  },
+
+  async getTaskInquiry({ openid, payload }) {
+    const user = await requireVerified(openid)
+    const conversation = await getInquiryForUser(payload.id, user._id)
+    return serializeInquiry(conversation, user._id, true)
+  },
+
+  async addTaskInquiryMessage({ openid, payload }) {
+    const user = await requireVerified(openid)
+    const conversation = await getInquiryForUser(payload.id, user._id)
+    if (conversation.status === 'closed') throw new Error('该任务咨询已结束')
+    const taskResult = await db.collection('tasks').doc(conversation.taskId).get()
+    if (!taskResult.data || taskResult.data.status !== 'open' || new Date(taskResult.data.expiresAt).getTime() <= Date.now()) {
+      throw new Error('任务已被接取或下架，咨询已结束')
+    }
+    const content = cleanText(payload.content, 200)
+    if (!content) throw new Error('消息不能为空')
+    if (OFF_PLATFORM_CONTENT.test(content)) throw new Error('为保护双方权益，请勿发送联系方式或引导线下转账')
+    const recipientId = user._id === conversation.publisherId ? conversation.inquirerId : conversation.publisherId
+    const createdAt = now()
+    const message = { conversationId: conversation._id, senderId: user._id, recipientId, content, createdAt }
+    const added = await db.collection('messages').add({ data: message })
+    const unreadField = recipientId === conversation.publisherId ? 'unreadForPublisher' : 'unreadForInquirer'
+    await db.collection('conversations').doc(conversation._id).update({
+      data: {
+        lastMessagePreview: content,
+        lastMessageAt: createdAt,
+        lastMessageSenderId: user._id,
+        [unreadField]: command.inc(1),
+        updatedAt: createdAt
+      }
+    })
+    return serializeMessage({ ...message, _id: added._id }, user._id)
+  },
+
+  async markTaskInquiryRead({ openid, payload }) {
+    const user = await requireVerified(openid)
+    const conversation = await getInquiryForUser(payload.id, user._id)
+    const unreadField = conversation.publisherId === user._id ? 'unreadForPublisher' : 'unreadForInquirer'
+    await db.collection('conversations').doc(conversation._id).update({ data: { [unreadField]: 0, updatedAt: now() } })
+    return { read: true }
+  },
+
   async createTask({ openid, payload }) {
     const user = await requireVerified(openid)
     const title = cleanText(payload.title, 20)
-    const description = cleanText(payload.description, 300)
-    const delivery = cleanText(payload.delivery, 80)
-    const location = cleanText(payload.location, 60)
     const note = cleanText(payload.note, 50)
+    const description = cleanText(payload.description || note || title, 300)
+    const delivery = cleanText(payload.delivery || '按任务标题和备注约定完成', 80)
+    const location = cleanText(payload.location || `${user.campus}内`, 60)
     const category = cleanText(payload.category, 20)
-    const amount = Number(payload.amount)
+    const amount = normalizeMoney(payload.amount)
     const expiryHours = Number(payload.expiryHours)
-    const serviceHours = Number(payload.serviceHours)
-    const allowedCategories = ['校园跑腿', '设计排版', '活动协助', '电脑协助']
-    if (title.length < 4 || description.length < 10 || delivery.length < 4 || !location) throw new Error('请完整填写任务信息')
+    const serviceHours = 24
+    if (title.length < 2) throw new Error('任务标题至少2个字')
     if (!Number.isFinite(amount) || amount <= 0 || amount > 2000) throw new Error('任务金额必须在0至2000元之间')
-    if (!allowedCategories.includes(category)) throw new Error('不支持该任务分类')
-    if (![24, 72, 168, 336].includes(expiryHours) || ![24, 72, 168].includes(serviceHours)) throw new Error('任务时效参数无效')
+    if (!TASK_CATEGORIES.includes(category)) throw new Error('不支持该任务分类')
+    if (![24, 72, 168, 336].includes(expiryHours)) throw new Error('任务时效参数无效')
     if (RISKY_CONTENT.test(`${title}${description}${delivery}${note}`)) throw new Error('任务可能涉及平台禁止的高风险服务')
 
     const createdAt = now()
@@ -411,10 +612,18 @@ const actions = {
       extensionCount: 0,
       createdAt,
       updatedAt: createdAt,
-      note
+      note,
+      fundsStatus: 'held'
     }
-    const added = await db.collection('tasks').add({ data: task })
-    return serializeTask({ ...task, _id: added._id }, user, user._id)
+    return db.runTransaction(async transaction => {
+      const currentUser = (await transaction.collection('users').doc(user._id).get()).data
+      if (normalizeMoney(currentUser.walletBalance) < amount) throw new Error('钱包余额不足，请先充值')
+      await transaction.collection('users').doc(user._id).update({
+        data: { walletBalance: normalizeMoney(currentUser.walletBalance - amount), updatedAt: createdAt }
+      })
+      const added = await transaction.collection('tasks').add({ data: task })
+      return serializeTask({ ...task, _id: added._id }, currentUser, user._id)
+    })
   },
 
   async extendTask({ openid, payload }) {
@@ -433,11 +642,12 @@ const actions = {
 
   async acceptTask({ openid, payload }) {
     const user = await requireVerified(openid)
-    return db.runTransaction(async transaction => {
+    const createdOrder = await db.runTransaction(async transaction => {
       const taskResult = await transaction.collection('tasks').doc(payload.id).get()
       const task = taskResult.data
       if (!task || task.status !== 'open' || new Date(task.expiresAt).getTime() <= Date.now()) throw new Error('任务已被接取或已下架')
       if (task.publisherId === user._id) throw new Error('不能接取自己发布的任务')
+      if (task.school !== user.school) throw new Error('只能接取本人认证学校的任务')
       const createdAt = now()
       const order = {
         taskId: task._id,
@@ -464,10 +674,13 @@ const actions = {
       }
       const added = await transaction.collection('orders').add({ data: order })
       await transaction.collection('tasks').doc(task._id).update({
-        data: { status: 'accepted', acceptedBy: user._id, acceptedAt: createdAt, orderId: added._id, updatedAt: createdAt }
+        data: { status: 'accepted', fundsStatus: 'in_order', acceptedBy: user._id, acceptedAt: createdAt, orderId: added._id, updatedAt: createdAt }
       })
       return { id: added._id, ...order }
     })
+    const inquiries = await db.collection('conversations').where({ taskId: payload.id }).limit(50).get()
+    await Promise.all(inquiries.data.map(item => db.collection('conversations').doc(item._id).update({ data: { status: 'closed', updatedAt: now() } })))
+    return createdOrder
   },
 
   async listOrders({ openid, payload }) {
@@ -483,13 +696,41 @@ const actions = {
       .filter(order => !order.hiddenAt || new Date(order.hiddenAt).getTime() > Date.now() || order.status === 'disputed')
       .filter(order => filter === 'all' || (filter === 'active' && ['active', 'grace', 'submitted', 'disputed'].includes(order.status)) || (filter === 'closed' && ['completed', 'canceled'].includes(order.status)))
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    return Promise.all(visible.map(order => serializeOrder(order, user._id, false)))
+    const messageMeta = {}
+    if (visible.length) {
+      const messageResult = await db.collection('messages').where({ orderId: command.in(visible.map(order => order._id)) }).limit(100).get()
+      messageResult.data
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+        .forEach(message => {
+          const meta = messageMeta[message.orderId] || { hasMessages: false, lastMessagePreview: '', lastMessageAt: null, unreadCount: 0 }
+          meta.hasMessages = true
+          meta.lastMessagePreview = message.content
+          meta.lastMessageAt = toIso(message.createdAt)
+          if (message.recipientId === user._id && !message.readAt) meta.unreadCount += 1
+          messageMeta[message.orderId] = meta
+        })
+    }
+    const users = await getUsersByIds(visible.flatMap(order => [order.publisherId, order.runnerId]))
+    const orders = await Promise.all(visible.map(order => serializeOrder(order, user._id, false, users)))
+    return orders.map(order => ({
+      ...order,
+      ...(messageMeta[order.id] || { hasMessages: false, lastMessagePreview: '', lastMessageAt: null, unreadCount: 0 })
+    }))
   },
 
   async getOrder({ openid, payload }) {
     const user = await requireVerified(openid)
     const order = await getOrderForUser(payload.id, user._id)
     return serializeOrder(order, user._id, true)
+  },
+
+  async markOrderMessagesRead({ openid, payload }) {
+    const user = await requireVerified(openid)
+    const order = await getOrderForUser(payload.id, user._id)
+    const result = await db.collection('messages').where({ orderId: order._id }).limit(100).get()
+    const unread = result.data.filter(item => item.recipientId === user._id && !item.readAt)
+    await Promise.all(unread.map(item => db.collection('messages').doc(item._id).update({ data: { readAt: now() } })))
+    return { read: unread.length }
   },
 
   async submitOrder({ openid, payload }) {
@@ -530,7 +771,9 @@ const actions = {
         updatedAt: completedAt
       }
     })
-    await db.collection('users').doc(order.runnerId).update({ data: { completed: command.inc(1), updatedAt: completedAt } })
+    await db.collection('users').doc(order.runnerId).update({
+      data: { completed: command.inc(1), walletBalance: command.inc(Number(order.amount)), updatedAt: completedAt }
+    })
     const refreshed = await db.collection('orders').doc(order._id).get()
     return serializeOrder(refreshed.data, user._id, true)
   },
@@ -565,7 +808,8 @@ const actions = {
     const content = cleanText(payload.content, 200)
     if (!content) throw new Error('消息不能为空')
     if (OFF_PLATFORM_CONTENT.test(content)) throw new Error('为保护双方权益，请勿发送联系方式或引导线下转账')
-    const message = { orderId: order._id, senderId: user._id, content, createdAt: now() }
+    const recipientId = user._id === order.publisherId ? order.runnerId : order.publisherId
+    const message = { orderId: order._id, senderId: user._id, recipientId, content, createdAt: now() }
     const added = await db.collection('messages').add({ data: message })
     return serializeMessage({ ...message, _id: added._id }, user._id)
   },
@@ -609,6 +853,8 @@ exports.main = async event => {
 
 exports.__test__ = {
   cleanText,
+  normalizeMoney,
+  normalizeCategory,
   hash,
   maskPhone,
   publicUser,

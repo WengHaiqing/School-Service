@@ -49,10 +49,11 @@ campus-lifecycle-every-10-minutes
 - `tasks`
 - `orders`
 - `messages`
+- `conversations`
 - `reports`
 - `system_meta`
 
-如果控制台提示集合不存在，说明当前云函数 SDK 不支持自动创建集合，请在“云开发 → 数据库”中手动创建上述 6 个集合，然后重新编译。
+如果控制台提示集合不存在，说明当前云函数 SDK 不支持自动创建集合，请在“云开发 → 数据库”中手动创建上述 7 个集合，然后重新编译。
 
 ### 数据库权限
 
@@ -71,7 +72,8 @@ campus-lifecycle-every-10-minutes
 - `users`：`openid` 唯一索引。
 - `tasks`：`status`、`publisherId`、`expiresAt` 普通索引。
 - `orders`：`publisherId`、`runnerId`、`status` 普通索引。
-- `messages`：`orderId`、`createdAt` 普通索引。
+- `messages`：`orderId`、`conversationId`、`createdAt` 普通索引。
+- `conversations`：`publisherId`、`inquirerId`、`taskId` 普通索引。
 - `reports`：`status`、`createdAt` 普通索引。
 
 创建 `openid` 唯一索引前，先确认测试阶段没有重复用户记录。
@@ -115,7 +117,7 @@ campus-lifecycle-every-10-minutes
 
 ### 数据库集合不存在
 
-按照第 3 节手动创建 6 个集合。
+按照第 3 节手动创建 7 个集合。
 
 ### 权限不足
 

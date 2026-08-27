@@ -5,7 +5,7 @@ Page({
   data: {
     keyword: '',
     activeCategory: '全部',
-    categories: ['全部', '校园跑腿', '设计排版', '活动协助', '电脑协助'],
+    categories: ['全部', '校园跑腿', '跳蚤市场', '自由任务'],
     tasks: []
   },
 

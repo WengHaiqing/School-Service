@@ -62,7 +62,7 @@ Page({
     try {
       await dataService.completeOnboarding({ phone, school, campus, studentNo })
       wx.showToast({ title: '认证完成', icon: 'success' })
-      setTimeout(() => wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/index/index' }) }), 600)
+      wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/index/index' }) })
     } catch (error) {
       this.toast(error.message)
     } finally {

@@ -1,0 +1,50 @@
+<view wx:if="{{context}}" class="chat-page">
+  <view class="chat-context">
+    <view class="chat-context__avatar">{{peer.avatarText}}</view>
+    <view class="chat-context__copy">
+      <text class="chat-context__name">{{peer.nickname}}</text>
+      <text class="chat-context__task">{{context.title}} · ¥{{context.amount}}</text>
+    </view>
+    <text class="chat-context__status">{{context.statusText}}</text>
+  </view>
+
+  <view class="chat-notice">
+    <text>{{mode === 'inquiry' ? '咨询与任务绑定' : '消息仅用于本订单'}}，请勿发送联系方式或线下转账</text>
+    <text class="chat-notice__rules" bindtap="openRules">规则</text>
+  </view>
+
+  <scroll-view class="message-list" scroll-y="true" scroll-into-view="{{lastMessageId}}" scroll-with-animation="true">
+    <view wx:if="{{!messages.length}}" class="chat-empty">
+      <view class="chat-empty__icon">聊</view>
+      <text class="chat-empty__title">开始沟通任务细节</text>
+      <text class="chat-empty__desc">消息只对当前任务的双方可见</text>
+    </view>
+
+    <view wx:for="{{messages}}" wx:key="id" id="message-{{item.id}}" class="message-row {{item.isMe ? 'message-row--mine' : ''}}">
+      <view wx:if="{{!item.isMe}}" class="message-avatar">{{peer.avatarText}}</view>
+      <view class="message-content">
+        <text class="message-bubble">{{item.content}}</text>
+        <text class="message-time">{{item.timeText}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{canSend}}" class="chat-composer">
+    <input class="chat-composer__input" maxlength="200" value="{{message}}" bindinput="onInput" bindconfirm="sendMessage" confirm-type="send" confirm-hold="true" adjust-position="true" placeholder="输入消息" />
+    <button class="chat-composer__send" loading="{{sending}}" disabled="{{!message || sending}}" bindtap="sendMessage">发送</button>
+  </view>
+  <view wx:else class="chat-closed">{{mode === 'inquiry' ? '任务咨询已结束' : '订单已关闭'}}，可查看历史消息</view>
+</view>
+
+<view wx:elif="{{loading}}" class="page">
+  <view class="loading-card card">正在加载对话…</view>
+</view>
+
+<view wx:else class="page">
+  <view class="empty card">
+    <view class="empty__icon">🔐</view>
+    <text class="empty__title">对话不存在或无权查看</text>
+    <text class="empty__desc">聊天只对当前任务的双方开放。</text>
+    <button class="btn btn--secondary back-button" bindtap="backOrders">返回订单列表</button>
+  </view>
+</view>

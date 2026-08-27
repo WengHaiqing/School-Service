@@ -25,23 +25,8 @@
 
   <view class="content-card card">
     <view class="content-section">
-      <text class="content-section__label">任务说明</text>
-      <text class="content-section__text">{{task.description}}</text>
-    </view>
-    <view class="divider"></view>
-    <view class="content-section">
-      <text class="content-section__label">交付标准</text>
-      <text class="content-section__text">{{task.delivery}}</text>
-    </view>
-    <view class="divider"></view>
-    <view class="content-section">
-      <text class="content-section__label">服务地点</text>
-      <text class="content-section__text">📍 {{task.location}}</text>
-    </view>
-    <view wx:if="{{task.note}}" class="divider"></view>
-    <view wx:if="{{task.note}}" class="content-section">
       <text class="content-section__label">备注</text>
-      <text class="content-section__text">{{task.note}}</text>
+      <text class="content-section__text">{{task.note || '发布者没有填写补充备注'}}</text>
     </view>
   </view>
 
@@ -49,10 +34,6 @@
     <view class="time-row">
       <text class="time-row__label">接单截止</text>
       <text class="time-row__value">{{task.expiresText}}</text>
-    </view>
-    <view class="time-row">
-      <text class="time-row__label">预计履约截止</text>
-      <text class="time-row__value">{{task.serviceText}}</text>
     </view>
     <view class="time-row">
       <text class="time-row__label">发布时间</text>
@@ -79,13 +60,19 @@
   </view>
 
   <view class="sticky-action">
-    <view>
-      <text class="sticky-action__label">固定报酬</text>
-      <text class="money">¥{{task.amount}}</text>
+    <view wx:if="{{!task.isMine}}" class="sticky-action__buttons">
+      <button class="btn btn--outline sticky-action__contact" disabled="{{contacting}}" bindtap="contactPublisher">咨询发布者</button>
+      <button class="btn btn--primary sticky-action__accept" loading="{{accepting}}" disabled="{{accepting}}" bindtap="accept">{{accepting ? '接单中…' : '立即接单'}}</button>
     </view>
-    <button wx:if="{{!task.isMine}}" class="btn btn--primary sticky-action__button" disabled="{{accepting}}" bindtap="accept">立即接单</button>
-    <button wx:else class="btn btn--secondary sticky-action__button" bindtap="goSearch">继续浏览</button>
+    <button wx:else class="btn btn--secondary sticky-action__button" bindtap="goSearch">返回首页</button>
   </view>
+</view>
+
+<view wx:elif="{{loading}}" class="page detail-loading">
+  <view class="skeleton skeleton--hero"></view>
+  <view class="skeleton skeleton--row"></view>
+  <view class="skeleton skeleton--card"></view>
+  <view class="skeleton skeleton--card"></view>
 </view>
 
 <view wx:else class="page">
@@ -93,6 +80,6 @@
     <view class="empty__icon">🍃</view>
     <text class="empty__title">任务已下架或被接取</text>
     <text class="empty__desc">公开任务到期或接单后会自动从任务大厅移除。</text>
-    <button class="btn btn--secondary not-found-button" bindtap="goSearch">返回任务大厅</button>
+    <button class="btn btn--secondary not-found-button" bindtap="goSearch">返回首页</button>
   </view>
 </view>
